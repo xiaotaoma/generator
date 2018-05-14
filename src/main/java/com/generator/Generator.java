@@ -1,33 +1,37 @@
 package com.generator;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
 
 public class Generator {
     private static String driverName = "oracle.jdbc.driver.OracleDriver";
-    private static String url = "jdbc:oracle:thin:@47.95.237.183:1521:orcl";
-    private static String user = "NUMYSQL-JZ";
-    private static String password = "Zkzn2017";
+    private static String url = "jdbc:oracle:thin:@localhost:1521:orcl";
+    private static String user = "scott";
+    private static String password = "tiger";
 
-    private static String model_package = "com.test.test.model";//model文件路径
-    private static String mapper_package = "com.test.test.mapper";//dao文件路径
-    private static String xml_package = "com.test.test.xml";//xml文件路径
-    private static String table = "";
-    private static Connection connection = null;
-    public static void main(String[] args) throws SQLException {
+    public static String model_package = "com.test.test.model";//model文件路径
+    public static String mapper_package = "com.test.test.mapper";//dao文件路径
+    public static String xml_package = "com.test.test.xml";//xml文件路径
+    public static String table = "";
+    public static Connection connection = null;
+    public static void main(String[] args) throws SQLException, IOException {
         /*String rootPath = getRootPath();
         packageInit(rootPath, mapper_package);
         packageInit(rootPath, model_package);
         packageInit(rootPath, xml_package);*/
         connInit();
         //List<String> tables = tables();
-        Table table = tableInfo("SYS_APP_USER");
+        Table table = tableInfo("TB_DAY_RECONCILIATION");
         GeneratorModel generator = new GeneratorModel(table, model_package);
         generator.generator();
+        GeneratorDao generatorDao = new GeneratorDao(table, mapper_package, generator);
+        generatorDao.generator();
 
-
+        GeneratorMapper generatorMapper = new GeneratorMapper(table, xml_package);
+        generatorMapper.generator();
         connection.close();
     }
 

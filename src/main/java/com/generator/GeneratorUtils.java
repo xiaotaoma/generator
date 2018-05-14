@@ -82,7 +82,7 @@ public class GeneratorUtils {
     private static void writeSet(FileWriter writer, Column colnum, int space) throws IOException {
         space = space(space);
         writeSpace(writer, space);
-        writer.write("private " + colnum.getJavaTypeName() + " " + colnum.getSetMethodName() + "("+ colnum.getJavaTypeName() + " " + colnum.getFieldName() +"){");
+        writer.write("private void " + colnum.getSetMethodName() + "("+ colnum.getJavaTypeName() + " " + colnum.getFieldName() +"){");
         writer.write("\n");
         space = space(space);
         writeSpace(writer, space);

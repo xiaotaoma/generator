@@ -36,7 +36,7 @@ public class GeneratorModel {
         try {
             int space = 0;
             FileWriter fileWriter = new FileWriter(model);
-            fileWriter.write("package " + basePackage);
+            fileWriter.write("package " + basePackage + ";");
             fileWriter.write("\n");
             fileWriter.write("\n");
             fileWriter.write("\n");
