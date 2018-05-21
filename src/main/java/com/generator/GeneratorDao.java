@@ -10,23 +10,18 @@ import static com.generator.GeneratorUtils.writeModel;
  * 生成dao
  */
 public class GeneratorDao {
-    private GeneratorModel generatorModel;
     private Table table;
-    private String basePackage;
-    private String daoName;
 
-    public GeneratorDao(Table table, String basePackage, GeneratorModel generatorModel) {
+    public GeneratorDao(Table table) {
         this.table = table;
-        this.basePackage = basePackage;
-        this.daoName = table.getClassName() + "Mapper";
-        this.generatorModel = generatorModel;
     }
 
-    public void generator() {
-        String[] split = basePackage.split("\\.");
+    public void generator() throws IOException {
+        String[] split = Generator.config.getPackageDao().split("\\.");
         File file = new File("");
         System.out.println(file.getAbsolutePath());
         String absolutePath = file.getAbsolutePath();
+        absolutePath = absolutePath + "/src/main/java";
         for (int i = 0; i < split.length; i++) {
             file = new File(absolutePath + "/" + split[i]);
             if (!file.exists()) {
@@ -35,56 +30,53 @@ public class GeneratorDao {
             absolutePath = file.getAbsolutePath();
         }
 
-        File model = new File(absolutePath + "/"+ daoName + ".java");
-        System.out.println(model.getName());
-
-        try {
-            int space = 0;
-            FileWriter fileWriter = new FileWriter(model);
-            fileWriter.write("package " + basePackage);
-            fileWriter.write("\n");
-            fileWriter.write("\nimport "+Generator.model_package + "." + table.getClassName() + ";");
-            fileWriter.write("\nimport java.util.List;");
-            fileWriter.write("\n");
-            fileWriter.write("\npublic interface " + daoName + "{");
-            fileWriter.write("\n");
-            fileWriter.write("\n");
-            writeInsert(fileWriter, space);
-            writeUpdate(fileWriter, space);
-            writeList(fileWriter, space);
-            fileWriter.write("\n");
-            fileWriter.write("}");
-            fileWriter.flush();
-            fileWriter.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        File model = new File(absolutePath + "/"+ table.getClassName() + "Mapper.java");
+        if (!model.exists()) {
+            model.createNewFile();
         }
-    }
 
-    private void writeInsert(FileWriter writer, int space) throws IOException {
-        writer.write("\n");
-        space = GeneratorUtils.space(space);
-        GeneratorUtils.writeSpace(writer, space);
-        writer.write("void insert(" + table.getClassName() + " " + GeneratorUtils.firstLetterLow(table.getClassName()) + ");");
-        writer.write("\n");
-        writer.write("\n");
-    }
+        System.out.println(model.getName());
+        StringBuilder importMsg = new StringBuilder();
+        importMsg.append("\nimport ").append(table.getClassFullName()).append(";");
 
-    private void writeUpdate(FileWriter writer, int space) throws IOException {
-        writer.write("\n");
-        space = GeneratorUtils.space(space);
-        GeneratorUtils.writeSpace(writer, space);
-        writer.write("void update(" + table.getClassName() + " " + GeneratorUtils.firstLetterLow(table.getClassName()) + ");");
-        writer.write("\n");
-        writer.write("\n");
-    }
+        StringBuilder update = new StringBuilder();
+        StringBuilder getByPid = new StringBuilder();
+        Column primaryKey = table.getPrimaryKey();
+        if (primaryKey != null) {
+            update.append("\n    int update(").append(table.getClassName()).append(" ").append(GeneratorUtils.firstLetterLow(table.getClassName())).append(");");
+            getByPid.append("\n    ").append(table.getClassName()).append(" getByPid(").append(primaryKey.getJavaTypeName())
+                    .append(" ").append(GeneratorUtils.firstLetterLow(primaryKey.getFieldName())).append(");");
 
-    public void writeList(FileWriter writer, int space) throws IOException {
-        writer.write("\n");
-        space = GeneratorUtils.space(space);
-        GeneratorUtils.writeSpace(writer, space);
-        writer.write("List<" + table.getClassName() + "> " +"listAll();");
-        writer.write("\n");
-        writer.write("\n");
+            importMsg.append("\nimport ").append(primaryKey.getJavaType()).append(";");
+        }
+
+        FileWriter fileWriter = new FileWriter(model);
+
+        fileWriter.write("package " + Generator.config.getPackageDao() + ";");
+        fileWriter.write("\n");
+        fileWriter.write(importMsg.toString());
+        fileWriter.write("\n");
+        fileWriter.write("\npublic interface " + table.getDaoName() + "{");
+        fileWriter.write("\n");
+
+        StringBuilder insert = new StringBuilder();
+        insert.append("\n    int insert(").append(table.getClassName()).append(" ").append(GeneratorUtils.firstLetterLow(table.getClassName())).append(");");
+
+        fileWriter.write(insert.toString());
+        fileWriter.write("\n");
+
+        if (primaryKey != null) {
+            fileWriter.write(update.toString());
+            fileWriter.write("\n");
+
+            fileWriter.write(getByPid.toString());
+            fileWriter.write("\n");
+        }
+
+        fileWriter.write("\n");
+        fileWriter.write("}");
+        fileWriter.flush();
+        fileWriter.close();
+
     }
 }

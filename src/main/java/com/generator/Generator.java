@@ -1,90 +1,49 @@
 package com.generator;
 
+import sun.dc.pr.PRError;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.sql.*;
 import java.util.*;
 
 public class Generator {
-    private static String driverName = "oracle.jdbc.driver.OracleDriver";
-    private static String url = "jdbc:oracle:thin:@localhost:1521:orcl";
-    private static String user = "scott";
-    private static String password = "tiger";
+    public static Config config;
 
-    public static String model_package = "com.test.test.model";//model文件路径
-    public static String mapper_package = "com.test.test.mapper";//dao文件路径
-    public static String xml_package = "com.test.test.xml";//xml文件路径
-    public static String table = "";
     public static Connection connection = null;
     public static void main(String[] args) throws SQLException, IOException {
-        /*String rootPath = getRootPath();
-        packageInit(rootPath, mapper_package);
-        packageInit(rootPath, model_package);
-        packageInit(rootPath, xml_package);*/
-        connInit();
-        //List<String> tables = tables();
-        Table table = tableInfo("TB_DAY_RECONCILIATION");
-        GeneratorModel generator = new GeneratorModel(table, model_package);
+        Generator generator = new Generator();
         generator.generator();
-        GeneratorDao generatorDao = new GeneratorDao(table, mapper_package, generator);
+    }
+
+    public void generator() throws IOException, SQLException {
+        URL resource = Generator.class.getClassLoader().getResource("generator.properties");
+        System.out.println(resource);
+        Properties properties = new Properties();
+        properties.load(Generator.class.getClassLoader().getResourceAsStream("generator.properties"));
+        config = new Config(properties);
+        connInit();
+        Table table = tableInfo(config.getTableName());
+        GeneratorModel generator = new GeneratorModel(table);
+        generator.generator();
+
+        GeneratorMapper generatorMapper = new GeneratorMapper(table);
+        generatorMapper.generator();
+
+        GeneratorDao generatorDao = new GeneratorDao(table);
         generatorDao.generator();
 
-        GeneratorMapper generatorMapper = new GeneratorMapper(table, xml_package);
-        generatorMapper.generator();
         connection.close();
     }
 
-    public static Method getMethod(String fieldName, Class clazz){
-        StringBuffer sb = new StringBuffer();
-        sb.append("get");
-        sb.append(fieldName.substring(0, 1).toUpperCase());
-        sb.append(fieldName.substring(1));
+
+    private void connInit() {
         try {
-            return clazz.getMethod(sb.toString());
-        } catch (Exception e) {
-
-        }
-        return null;
-    }
-
-    public static Set<Method> get_getDeclared_methods(Class T) {
-        Method[] methods = T.getMethods();
-        Set<Method> methodSet = new HashSet<Method>();
-        for (Method method : methods) {
-            if (method.getName().startsWith("get")) {
-                methodSet.add(method);
-            }
-        }
-        return methodSet;
-    }
-
-    private static String getRootPath() {
-        File file = new File("");
-        try {
-            return file.getCanonicalPath();
-        }catch (Exception e) {
-            e.fillInStackTrace();
-        }
-        return null;
-    }
-
-    private static void packageInit(String rootPath, String packagePath){
-        String javaPath = rootPath + "\\src\\main\\java";
-        String[] split = packagePath.split("\\.");
-        for (int i = 0; i < split.length; i++) {
-            javaPath += "\\"+split[i];
-            File file = new File(javaPath);
-            if (!file.exists()) {
-                file.mkdir();
-            }
-        }
-    }
-
-    private static void connInit() {
-        try {
-            Class.forName(driverName);
-            connection = DriverManager.getConnection(url, user, password);
+            Class.forName(config.getDataSourceDriver());
+            connection = DriverManager.getConnection(config.getDataSourceUrl(), config.getDataSourceUsername(), config.getDataSourcePassword());
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -93,7 +52,7 @@ public class Generator {
      * 查询所有表
      * @return
      */
-    private static List<String> tables() throws SQLException {
+    private List<String> tables() throws SQLException {
         List<String> tables = new LinkedList<>();
         String sql = "select table_name from user_tables";
         PreparedStatement statement = connection.prepareStatement(sql);
@@ -104,7 +63,7 @@ public class Generator {
             tables.add(string);
         }
 
-        if (table != null && table.length() > 0 && tables.contains(table)) {
+        if (config.getTableName() != null && config.getTableName().length() > 0 && tables.contains(config.getTableName())) {
 
         }else {
             //throw new RuntimeException("制定表明错误，未找到制定的表");
@@ -113,24 +72,60 @@ public class Generator {
         return tables;
     }
 
-    private static Table tableInfo(String tableName) throws SQLException {
-        String sql = "select cname,coltype,width from col where tname='"+tableName+"'";
+    private Table tableInfo(String tableName) {
+        String sql = "";
         System.out.println(sql);
-        List<Column> list = new ArrayList<>();
-        PreparedStatement statement = connection.prepareStatement(sql);
-        ResultSet resultSet = statement.executeQuery();
-        while (resultSet.next()) {
-            String colName = resultSet.getString(1);
-            String jdbcType = resultSet.getString(2);
-            String length = resultSet.getString(3);
-            System.out.println(colName + "\t" + jdbcType + "\t" + length);
-            Column column = new Column(colName, jdbcType, length);
-            System.out.println(column);
-            list.add(column);
-        }
+        Map<String, Column> map = new LinkedHashMap<>();
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
         Table table = new Table();
-        table.setTableName(tableName);
-        table.setColumns(list);
+        try {
+            sql = "select cu.COLUMN_NAME,cu.COLUMN_NAME from user_cons_columns cu, user_constraints au where cu.constraint_name = au.constraint_name and au.constraint_type = 'P' and au.table_name = '"+tableName.toUpperCase()+"'";
+            System.out.println(sql);
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String colName = resultSet.getString(1);
+                String colType = resultSet.getString(2);
+                System.out.println(colName + "\t" + colType + "\t");
+                Column column = new Column(colName, colType, null);
+                map.put(colName, column);
+            }
+
+            sql = "select cname,coltype,width from col where tname='"+tableName.toUpperCase()+"'";
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String colName = resultSet.getString(1);
+                String colType = resultSet.getString(2);
+                String length = resultSet.getString(3);
+                System.out.println(colName + "\t" + colType + "\t" + length);
+                Column column = new Column(colName, colType, length);
+                if (map.containsKey(colName)) {
+                    column.setPrimaryKey(true);
+                    table.setPrimaryKey(column);
+                }
+                map.put(column.getColName(), column);
+            }
+            resultSet.close();
+            statement.close();
+            table.setTableName(tableName);
+            table.setColumnMap(map);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }finally {
+            try {
+                resultSet.close();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                statement.close();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return table;
     }
 

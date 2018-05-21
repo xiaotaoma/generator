@@ -7,18 +7,17 @@ import static com.generator.GeneratorUtils.writeModel;
 
 public class GeneratorModel {
     private Table table;
-    private String basePackage;
 
-    public GeneratorModel(Table table, String basePackage) {
+    public GeneratorModel(Table table) {
         this.table = table;
-        this.basePackage = basePackage;
     }
 
     public void generator() {
-        String[] split = basePackage.split("\\.");
+        String[] split = Generator.config.getPackageModel().split("\\.");
         File file = new File("");
         System.out.println(file.getAbsolutePath());
         String absolutePath = file.getAbsolutePath();
+        absolutePath = absolutePath + "/src/main/java";
         for (int i = 0; i < split.length; i++) {
             file = new File(absolutePath + "/" + split[i]);
             if (!file.exists()) {
@@ -27,25 +26,15 @@ public class GeneratorModel {
             absolutePath = file.getAbsolutePath();
         }
 
-        String tableName = table.getTableName();
-        TableNameToClassName tableNameToClassName = new TableNameToClassName("", tableName, "");
-        String className = tableNameToClassName.toClassName();
+        String className = table.getClassName();
         System.out.println(className);
         File model = new File(absolutePath + "/"+ className + ".java");
         System.out.println(model.getName());
         try {
-            int space = 0;
             FileWriter fileWriter = new FileWriter(model);
-            fileWriter.write("package " + basePackage + ";");
+            fileWriter.write("package " + Generator.config.getPackageModel() + ";");
             fileWriter.write("\n");
-            fileWriter.write("\n");
-            fileWriter.write("\n");
-            fileWriter.write("public class " + className + "{");
-            fileWriter.write("\n");
-            fileWriter.write("\n");
-            writeModel(fileWriter, table.getColumns(), space);
-            fileWriter.write("\n");
-            fileWriter.write("}");
+            writeModel(fileWriter, table);
             fileWriter.flush();
             fileWriter.close();
         } catch (Exception e) {
