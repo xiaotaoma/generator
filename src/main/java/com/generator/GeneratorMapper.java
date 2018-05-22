@@ -58,7 +58,7 @@ public class GeneratorMapper {
 
         if (primaryKey != null) {
             getByPid.append("\n    <select id=\"getByPid\" parameterType=\"").append(primaryKey.getJavaType()).append("\" resultMap=\"BaseResultMap\">");
-            getByPid.append("\n        select <include refid=\"columns\"/> from tb_dz_line where id = ").append("#{").append(primaryKey.getFieldName())
+            getByPid.append("\n        select <include refid=\"columns\"/> from tb_dz_line where ").append(primaryKey.getColName()).append(" = ").append("#{").append(primaryKey.getFieldName())
                     .append(", jdbcType=").append(primaryKey.getJdbcType()).append("}");
             getByPid.append("\n    </select>");
         }
