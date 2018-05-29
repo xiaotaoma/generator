@@ -17,7 +17,7 @@ public class Generator {
 
     /**
      *
-     * mvn deploy:deploy-file -DgroupId=com.zkzn.generator -DartifactId=generator -Dversion=1.0 -Dpackaging=jar -Dfile=D:\generator.jar -Durl=http://192.168.0.33:8081/repository/3rd_part/ -DrepositoryId=nexus
+     * mvn deploy:deploy-file -DgroupId=com.zkzn.generator -DartifactId=generator -Dversion=1.05 -Dpackaging=jar -Dfile=generator.jar -Durl=http://192.168.0.33:8081/repository/3rd_part/ -DrepositoryId=nexus
      * @param args
      * @throws SQLException
      * @throws IOException
