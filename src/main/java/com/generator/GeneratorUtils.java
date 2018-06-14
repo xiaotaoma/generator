@@ -213,4 +213,33 @@ public class GeneratorUtils {
         }
         return jdbcType;
     }
+    /**
+     * oracle 数据类型对应mybatis jdbcType
+     * @return
+     */
+    public static String mysqlColTypeToJdbcType(String colType) {
+        String jdbcType = "VARCHAR";
+        switch (colType) {
+            case "INT":    jdbcType = "INTEGER";  break;
+            case "BIGINT":    jdbcType = "BIGINT";  break;
+            case "BIT":    jdbcType = "BIT";  break;
+            case "BLOB":    jdbcType = "BLOB";  break;
+            case "CHAR":    jdbcType = "CHAR";  break;
+            case "TEXT":    jdbcType = "TEXT";  break;
+            case "DATE":    jdbcType = "DATE";  break;
+            case "DECIMAL":    jdbcType = "DECIMAL";  break;
+            case "DOUBLE":    jdbcType = "DOUBLE";  break;
+            case "FLOAT":    jdbcType = "FLOAT";  break;
+            case "NUMERIC":    jdbcType = "NUMERIC";  break;
+            case "REAL":    jdbcType = "REAL";  break;
+            case "SMALLINT":    jdbcType = "SMALLINT";  break;
+            case "TIME":    jdbcType = "TIME";  break;
+            case "TIMESTAMP":    jdbcType = "TIMESTAMP";  break;
+            case "DATETIME":    jdbcType = "TIMESTAMP";  break;
+            case "TINYINT":    jdbcType = "TINYINT";  break;
+            case "VARCHAR":    jdbcType = "VARCHAR";  break;
+            default: jdbcType = "VARCHAR"; break;
+        }
+        return jdbcType;
+    }
 }

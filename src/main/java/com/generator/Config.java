@@ -24,6 +24,12 @@ public class Config {
         this.tablePrefix = properties.getProperty("generator.table.prefix");
         this.tableSuffix = properties.getProperty("generator.table.suffix");
         this.tableName = properties.getProperty("generator.table.name");
+
+        if (dataSourceDriver.indexOf("oracle") > 0) {
+            dbType = "oracle";
+        }else if (dataSourceDriver.indexOf("mysql") > 0) {
+            dbType = "mysql";
+        }
     }
 
     private String dataSourceUrl;
@@ -37,6 +43,15 @@ public class Config {
     private String tablePrefix;
     private String tableSuffix;
     private String tableName;
+    private String dbType;
+
+    public String getDbType() {
+        return dbType;
+    }
+
+    public void setDbType(String dbType) {
+        this.dbType = dbType;
+    }
 
     public String getTableName() {
         return tableName;

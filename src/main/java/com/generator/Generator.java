@@ -1,19 +1,17 @@
 package com.generator;
 
-import sun.dc.pr.PRError;
-
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Generator {
     public static Config config;
 
     public static Connection connection = null;
+
 
     /**
      *
@@ -34,7 +32,12 @@ public class Generator {
         properties.load(Generator.class.getClassLoader().getResourceAsStream("generator.properties"));
         config = new Config(properties);
         connInit();
-        Table table = tableInfo(config.getTableName());
+        Table table = null;
+        if(config.getDbType().equals("oracle")) {
+            table = oracleTableInfo(config.getTableName());
+        }else if (config.getDbType().equals("mysql")) {
+            table = mysqlTableInfo(config.getTableName());
+        }
         GeneratorModel generator = new GeneratorModel(table);
         generator.generator();
 
@@ -80,7 +83,7 @@ public class Generator {
         return tables;
     }
 
-    private Table tableInfo(String tableName) {
+    private Table oracleTableInfo(String tableName) {
         String sql = "";
         System.out.println(sql);
         Map<String, Column> map = new LinkedHashMap<>();
@@ -137,5 +140,66 @@ public class Generator {
         return table;
     }
 
+    private Table mysqlTableInfo(String tableName) {
+        String sql = "desc " + tableName + ";";
+        System.out.println(sql);
+        Map<String, Column> map = new LinkedHashMap<>();
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        Table table = new Table();
+        try {
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+            List<Column> list = new ArrayList<>();
+            while (resultSet.next()) {
+                String field = resultSet.getString(1);
+                String type = resultSet.getString(2);
+                String nul = resultSet.getString(3);
+                String key = resultSet.getString(4);
 
+                Pattern pattern = Pattern.compile("\\(.*\\)");
+                Matcher matcher = pattern.matcher(type);
+                String length = "";
+
+                if (matcher.find()) {
+                    String group = matcher.group();
+                    type = type.replace(group, "");
+                    group = group.replace("(", "");
+                    length = group.replace(")", "");
+                }
+
+                System.out.println(field + "\t" + type + "\t" + length + "\t" + key);
+                if (key != null && key.equals("PRI")) {
+                    Column column = new Column(field, type, length);
+                    column.setPrimaryKey(true);
+                    map.put(column.getColName(), column);
+                    table.setPrimaryKey(column);
+                }else {
+                    list.add(new Column(field, type, length));
+                }
+            }
+
+            for (int i = 0; i < list.size(); i++) {
+                Column column = list.get(i);
+                map.put(column.getColName(), column);
+            }
+            table.setTableName(tableName);
+            table.setColumnMap(map);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }finally {
+            try {
+                resultSet.close();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                statement.close();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return table;
+    }
 }

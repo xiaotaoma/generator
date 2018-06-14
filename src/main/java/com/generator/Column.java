@@ -11,7 +11,12 @@ public class Column {
         this.coltype = coltype;
         this.length = length;
 
-        String jdbcType = GeneratorUtils.oracleColTypeToJdbcType(coltype);
+        String jdbcType = "VARCHAR";
+        if (Generator.config.getDbType().equals("oracle")) {
+            jdbcType = GeneratorUtils.oracleColTypeToJdbcType(coltype.toUpperCase());
+        }else if (Generator.config.getDbType().equals("mysql")) {
+            jdbcType = GeneratorUtils.mysqlColTypeToJdbcType(coltype.toUpperCase());
+        }
         this.jdbcType = jdbcType;
 
         this.fieldName = firstLetterLow(nameFix(colName));//java model字段名
