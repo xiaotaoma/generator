@@ -150,7 +150,7 @@ public class GeneratorUtils {
             case "TIMESTAMP":
                 javaType = "java.util.Date"; break;
             case "NUMBER":
-                javaType = "java.math.BigDecimal"; break;
+                javaType = "java.lang.Integer"; break;
             default:
                 javaType = "java.lang.String"; break;
         }
@@ -205,7 +205,7 @@ public class GeneratorUtils {
             case "NCHAR":    jdbcType = "NCHAR";  break;
             case "NCLOB":    jdbcType = "NCLOB";  break;
             case "NUMERIC":    jdbcType = "NUMERIC";  break;
-            case "NUMBER":    jdbcType = "NUMERIC";  break;
+            case "NUMBER":    jdbcType = "INTEGER";  break;
             case "SMALLINT":    jdbcType = "SMALLINT";  break;
             case "VARCHAR":    jdbcType = "VARCHAR";  break;
             case "VARCHAR2":    jdbcType = "VARCHAR";  break;

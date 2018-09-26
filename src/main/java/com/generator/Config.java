@@ -25,9 +25,9 @@ public class Config {
         this.tableSuffix = properties.getProperty("generator.table.suffix");
         this.tableName = properties.getProperty("generator.table.name");
 
-        if (dataSourceDriver.indexOf("oracle") > 0) {
+        if (dataSourceDriver.indexOf("oracle") >= 0) {
             dbType = "oracle";
-        }else if (dataSourceDriver.indexOf("mysql") > 0) {
+        }else if (dataSourceDriver.indexOf("mysql") >= 0) {
             dbType = "mysql";
         }
     }

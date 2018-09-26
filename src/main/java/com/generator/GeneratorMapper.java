@@ -74,7 +74,7 @@ public class GeneratorMapper {
         insert.append("\n    <insert id=\"insert\" parameterType=\""+ table.getClassFullName() +"\">\n        ");
         insert.append("insert into ").append(table.getTableName()).append(" (");
         insert.append("\n        <include refid=\"columns\"/>").append(") \n        values (\n        ");
-        update.append("\n    <update id=\"update\" parameterType=\"").append(table.getClassName()).append("\">");
+        update.append("\n    <update id=\"update\" parameterType=\"").append(table.getClassFullName()).append("\">");
         update.append("\n        update ").append(table.getTableName()).append(" set");
 
 
