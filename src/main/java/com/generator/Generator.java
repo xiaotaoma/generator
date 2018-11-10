@@ -41,7 +41,7 @@ public class Generator {
         GeneratorModel generator = new GeneratorModel(table);
         generator.generator();
 
-        GeneratorMapper generatorMapper = new GeneratorMapper(table);
+        GeneratorMapper generatorMapper = new GeneratorMapper(table, config);
         generatorMapper.generator();
 
         GeneratorDao generatorDao = new GeneratorDao(table);

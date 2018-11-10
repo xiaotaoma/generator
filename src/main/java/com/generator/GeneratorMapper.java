@@ -10,10 +10,11 @@ public class GeneratorMapper {
 
     private Table table;
     private String mapperName;
-
-    public GeneratorMapper(Table table) {
+    private Config config;
+    public GeneratorMapper(Table table, Config config) {
         this.table = table;
         this.mapperName = table.getClassName() + "Mapper";
+        this.config = config;
     }
 
     public void generator() throws IOException {
@@ -55,6 +56,8 @@ public class GeneratorMapper {
         StringBuilder update = new StringBuilder();
         StringBuilder wherePK = new StringBuilder();
         StringBuilder getByPid = new StringBuilder();
+        StringBuilder cache = new StringBuilder();
+        StringBuilder listAll = new StringBuilder();
 
         if (primaryKey != null) {
             getByPid.append("\n    <select id=\"getByPid\" parameterType=\"").append(primaryKey.getJavaType()).append("\" resultMap=\"BaseResultMap\">");
@@ -63,21 +66,34 @@ public class GeneratorMapper {
             getByPid.append("\n    </select>");
         }
 
- /*<select id="getByPid" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+ /* <select id="getByPid" parameterType="java.lang.Integer" resultMap="BaseResultMap">
                 select <include refid="columns"/> from tb_dz_line where id = #{id}
-    </select>*/
+    </select>
+    <select id="listAll" resultMap="BaseResultMap">
+        select * from table
+    </select>
+    */
 
 
-        resultMap.append("\n    <resultMap id=\"BaseResultMap\" type=\""+table.getClassFullName()+"\">");
-        columns.append("\n    <sql id=\"columns\">\n        ");
-        completeColumns.append("\n    <sql id=\"completeColumns\">\n        ");
-        insert.append("\n    <insert id=\"insert\" parameterType=\""+ table.getClassFullName() +"\">\n        ");
+        resultMap.append("\n\n    <resultMap id=\"BaseResultMap\" type=\""+table.getClassFullName()+"\">");
+        columns.append("\n\n    <sql id=\"columns\">\n        ");
+        completeColumns.append("\n\n    <sql id=\"completeColumns\">\n        ");
+        insert.append("\n\n    <insert id=\"insert\" parameterType=\""+ table.getClassFullName() +"\">\n        ");
         insert.append("insert into ").append(table.getTableName()).append(" (");
         insert.append("\n        <include refid=\"columns\"/>").append(") \n        values (\n        ");
-        update.append("\n    <update id=\"update\" parameterType=\"").append(table.getClassFullName()).append("\">");
+        update.append("\n\n    <update id=\"update\" parameterType=\"").append(table.getClassFullName()).append("\">");
         update.append("\n        update ").append(table.getTableName()).append(" set");
+        listAll.append("\n    ").append("<select id=\"listAll\" resultMap=\"BaseResultMap\">").append("\n        ")
+                .append("select <include refid=\"columns\"/> from ").append(table.getTableName()).append("\n    ").append("</select>");
 
 
+        if (config.getCacheEnable() != null && config.getCacheEnable()) {
+            cache.append("\n\n\t<cache");
+            if (config.getCacheType() != null && config.getCacheType().length() > 0) {
+                cache.append(" type=\"").append(config.getCacheType()).append("\"");
+            }
+            cache.append("/>");
+        }
 
         Map<String, Column> columnMap = table.getColumnMap();
         Iterator<Map.Entry<String, Column>> iterator = columnMap.entrySet().iterator();
@@ -109,6 +125,8 @@ public class GeneratorMapper {
                     update.append(",");
                 }
             }
+            completeColumns.append(" ");
+            columns.append(" ");
             if (n > 0 && n%4 == 0) {
                 columns.append("\n        ");
                 completeColumns.append("\n        ");
@@ -125,8 +143,11 @@ public class GeneratorMapper {
         insert.append("\n        )\n    </insert>");
         update.append(wherePK).append("\n    </update>");
 
-
+        if (cache.length() > 0) {
+            fileWriter.write(cache.toString());
+        }
         fileWriter.write(resultMap.toString());
+        fileWriter.write(listAll.toString());
         fileWriter.write(columns.toString());
         fileWriter.write(completeColumns.toString());
         fileWriter.write(insert.toString());

@@ -21,15 +21,28 @@ public class Config {
         if (properties.getProperty("generator.package.xml") != null && !properties.getProperty("generator.package.xml").equals("")) {
             this.packageXml = properties.getProperty("generator.package.xml");
         }
+
+        if (properties.getProperty("generator.package.service") != null && properties.getProperty("generator.package.service").trim().length() > 0) {
+            this.servicePath = properties.getProperty("generator.package.service");
+        }
+        if (properties.getProperty("generator.package.controller") != null && properties.getProperty("generator.package.controller").trim().length() > 0) {
+            this.controllerPath = properties.getProperty("generator.package.controller");
+        }
+
         this.tablePrefix = properties.getProperty("generator.table.prefix");
         this.tableSuffix = properties.getProperty("generator.table.suffix");
         this.tableName = properties.getProperty("generator.table.name");
+
+        this.cacheEnable = Boolean.valueOf(properties.getProperty("generator.cache.enable"));
+        this.cacheType = properties.getProperty("generator.cache.type");
 
         if (dataSourceDriver.indexOf("oracle") >= 0) {
             dbType = "oracle";
         }else if (dataSourceDriver.indexOf("mysql") >= 0) {
             dbType = "mysql";
         }
+
+
     }
 
     private String dataSourceUrl;
@@ -44,6 +57,44 @@ public class Config {
     private String tableSuffix;
     private String tableName;
     private String dbType;
+
+    private Boolean cacheEnable;//是否启用mybatis二级缓存
+    private String cacheType;//mybatis二级缓存类型
+
+    private String servicePath;
+    private String controllerPath;
+
+    public String getServicePath() {
+        return servicePath;
+    }
+
+    public void setServicePath(String servicePath) {
+        this.servicePath = servicePath;
+    }
+
+    public String getControllerPath() {
+        return controllerPath;
+    }
+
+    public void setControllerPath(String controllerPath) {
+        this.controllerPath = controllerPath;
+    }
+
+    public Boolean getCacheEnable() {
+        return cacheEnable;
+    }
+
+    public void setCacheEnable(Boolean cacheEnable) {
+        this.cacheEnable = cacheEnable;
+    }
+
+    public String getCacheType() {
+        return cacheType;
+    }
+
+    public void setCacheType(String cacheType) {
+        this.cacheType = cacheType;
+    }
 
     public String getDbType() {
         return dbType;
